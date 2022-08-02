@@ -11,16 +11,16 @@ contract GooseBumpsSwapFactory is IGooseBumpsSwapFactory {
     /**
      * @dev Must be Multi-Signature Wallet.
      */
-    address public override feeToSetter;
+    address public override multiSigFeeToSetter;
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
-    constructor(address _feeToSetter) public {
-        require(_feeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
-        feeToSetter = _feeToSetter;
+    constructor(address _multiSigFeeToSetter) public {
+        require(_multiSigFeeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
+        multiSigFeeToSetter = _multiSigFeeToSetter;
     }
 
     function allPairsLength() external override view returns (uint) {
@@ -49,14 +49,14 @@ contract GooseBumpsSwapFactory is IGooseBumpsSwapFactory {
     }
 
     function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, 'GooseBumpsSwap: FORBIDDEN');
+        require(msg.sender == multiSigFeeToSetter, 'GooseBumpsSwap: FORBIDDEN');
         require(_feeTo != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
         feeTo = _feeTo;
     }
 
-    function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, 'GooseBumpsSwap: FORBIDDEN');
-        require(_feeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
-        feeToSetter = _feeToSetter;
+    function setFeeToSetter(address _multiSigFeeToSetter) external override {
+        require(msg.sender == multiSigFeeToSetter, 'GooseBumpsSwap: FORBIDDEN');
+        require(_multiSigFeeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
+        multiSigFeeToSetter = _multiSigFeeToSetter;
     }
 }
