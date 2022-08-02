@@ -386,7 +386,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         emit LogSwapExactTokenForETHOn0x(token, _amountIn, boughtAmount);
     }
     
-    function withdraw(address token) external onlyOwner nonReentrant {
+    function withdraw(address token) external onlyMultiSig nonReentrant {
         require(IERC20(token).balanceOf(address(this)) > 0 || address(this).balance > 0, "Zero Balance!");
 
         if(address(this).balance > 0) {
@@ -413,36 +413,36 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     // set functions
     //-------------------------------------------------------------------------
 
-    function setPause() external onlyOwner {
+    function setPause() external onlyMultiSig {
         _pause();
     }
 
-    function setUnpause() external onlyOwner {
+    function setUnpause() external onlyMultiSig {
         _unpause();
     }
 
-    function setTreasury(address _newTreasury) external onlyOwner whenNotPaused {
+    function setTreasury(address _newTreasury) external onlyMultiSig whenNotPaused {
         require(TREASURY != _newTreasury, "Same address! Notice: Must be Multi-sig Wallet!");
         TREASURY = _newTreasury;
 
         emit LogSetTreasury(_msgSender(), TREASURY);
     }
 
-    function setSwapFee(uint256 _newSwapFee) external onlyOwner whenNotPaused {
+    function setSwapFee(uint256 _newSwapFee) external onlyMultiSig whenNotPaused {
         require(SWAP_FEE != _newSwapFee, "Same value!");
         SWAP_FEE = _newSwapFee;
 
         emit LogSetSwapFee(_msgSender(), SWAP_FEE);
     }
 
-    function setSwapFee0x(uint256 _newSwapFee0x) external onlyOwner whenNotPaused {
+    function setSwapFee0x(uint256 _newSwapFee0x) external onlyMultiSig whenNotPaused {
         require(SWAP_FEE_0X != _newSwapFee0x, "Same value!");
         SWAP_FEE_0X = _newSwapFee0x;
 
         emit LogSetSwapFee0x(_msgSender(), SWAP_FEE_0X);
     }
 
-    function setDexRouter(address _newRouter) external onlyOwner whenNotPaused {
+    function setDexRouter(address _newRouter) external onlyMultiSig whenNotPaused {
         require(address(dexRouter_) != _newRouter, "Same router!");
         dexRouter_ = IGooseBumpsSwapRouter02(_newRouter);
         
