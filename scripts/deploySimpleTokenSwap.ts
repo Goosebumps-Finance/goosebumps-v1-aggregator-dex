@@ -14,12 +14,16 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
 
-  await greeter.deployed();
+  // Polygon Mainnet
+  const WETH = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // Polygon Mainnet WMTIC Address
 
-  console.log("Greeter deployed to:", greeter.address);
+  const SimpleTokenSwap = await ethers.getContractFactory("SimpleTokenSwap");
+  const simpleTokenSwap = await SimpleTokenSwap.deploy(WETH);
+
+  await simpleTokenSwap.deployed();
+
+  console.log("SimpleTokenSwap deployed to:", simpleTokenSwap.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

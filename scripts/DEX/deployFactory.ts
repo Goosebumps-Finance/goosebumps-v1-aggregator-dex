@@ -14,12 +14,26 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
 
-  await greeter.deployed();
+  // BSC And Other Testnet
+  // const _feeToSetter = "0x36285fDa2bE8a96fEb1d763CA77531D696Ae3B0b";
 
-  console.log("Greeter deployed to:", greeter.address);
+  // Polygon Mainnet
+  // const _feeToSetter = "0x25bB177C3fE2f6a9B599616aCcD1Ed6f1765F2EB";
+
+  // BSC Mainnet
+  const _feeToSetter = "0x55FCfd515D9472D91689592F653F9fE59FC7663e";
+
+  const GooseBumpsSwapFactory = await ethers.getContractFactory("GooseBumpsSwapFactory");
+  const gooseBumpsSwapFactory = await GooseBumpsSwapFactory.deploy(_feeToSetter);
+
+  await gooseBumpsSwapFactory.deployed();
+
+  console.log("GooseBumpsSwapFactory deployed to:", gooseBumpsSwapFactory.address);
+
+  const pairCodeHash = await gooseBumpsSwapFactory.pairCodeHash()
+  console.log("pairCodeHash:", pairCodeHash);
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
