@@ -9,7 +9,12 @@ import "./interfaces/IGooseBumpsSwapRouter02.sol";
 import "./interfaces/IGooseBumpsSwapFactory.sol";
 
 contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
-    
+
+    //--------------------------------------
+    // Constant
+    //--------------------------------------.
+    uint256 public MAX_SWAP_FEE = 3000;      // Max Fee = 3000 / 10000 * 100 = 30%
+
     //--------------------------------------
     // State variables
     //--------------------------------------
@@ -51,6 +56,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     constructor(address _router, address _treasury, uint256 _swapFee, uint256 _swapFee0x ) 
     {
         require(_treasury != address(0), "Zero address");
+        require(_swapFee <= MAX_SWAP_FEE && _swapFee0x <= MAX_SWAP_FEE, "SWAP_FEE_MIN_0_MAX_30");
         dexRouter_ = IGooseBumpsSwapRouter02(_router);
         TREASURY = _treasury;
         SWAP_FEE = _swapFee;
@@ -78,55 +84,21 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @param   tokenIn: tokenIn contract address
-     * @param   tokenOut: tokenOut contract address
+     * @param   path: path
      * @param   _amountIn: amount of input token
      * @return  uint256: Given an input asset amount, returns the maximum output amount of the other asset.
      */
-    function getAmountOut(address tokenIn, address tokenOut, uint256 _amountIn) external view returns(uint256) { 
-        require(_amountIn > 0 , "Invalid amount");
-        require(isPathExists(tokenIn, tokenOut), "Invalid path");
-
-        address[] memory path;
-        if (isPairExists(tokenIn, tokenOut))
-        {
-            path = new address[](2);
-            path[0] = tokenIn;
-            path[1] = tokenOut;
-        }
-        else {
-            path = new address[](3);
-            path[0] = tokenIn;
-            path[1] = dexRouter_.WETH();
-            path[2] = tokenOut;
-        }
+    function getAmountOut(address[] memory path, uint256 _amountIn) external view returns(uint256) { 
         uint256[] memory amountOutMaxs = dexRouter_.getAmountsOut(_amountIn * (10000 - SWAP_FEE) / 10000, path);
         return amountOutMaxs[path.length - 1];  
     }
 
     /**
-     * @param   tokenIn: tokenIn contract address
-     * @param   tokenOut: tokenOut contract address
+     * @param   path: path
      * @param   _amountOut: amount of output token
      * @return  uint256: Returns the minimum input asset amount required to buy the given output asset amount.
      */
-    function getAmountIn(address tokenIn, address tokenOut, uint256 _amountOut) external view returns(uint256) { 
-        require(_amountOut > 0 , "Invalid amount");
-        require(isPathExists(tokenIn, tokenOut), "Invalid path");
-
-        address[] memory path;
-        if (isPairExists(tokenIn, tokenOut))
-        {
-            path = new address[](2);
-            path[0] = tokenIn;
-            path[1] = tokenOut;
-        } 
-        else {
-            path = new address[](3);
-            path[0] = tokenIn;
-            path[1] = dexRouter_.WETH();
-            path[2] = tokenOut;
-        }
+    function getAmountIn(address[] memory path, uint256 _amountOut) external view returns(uint256) { 
         uint256[] memory amountInMins = dexRouter_.getAmountsIn(_amountOut, path);
         return amountInMins[0] * 10000 / (10000 - SWAP_FEE);
     }
@@ -429,6 +401,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     function setSwapFee(uint256 _newSwapFee) external onlyMultiSig whenNotPaused {
+        require(_newSwapFee <= MAX_SWAP_FEE, "SWAP_FEE_MIN_0_MAX_30");
         require(SWAP_FEE != _newSwapFee, "Same value!");
         SWAP_FEE = _newSwapFee;
 
@@ -436,6 +409,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     function setSwapFee0x(uint256 _newSwapFee0x) external onlyMultiSig whenNotPaused {
+        require(_newSwapFee0x <= MAX_SWAP_FEE, "SWAP_FEE_MIN_0_MAX_30");
         require(SWAP_FEE_0X != _newSwapFee0x, "Same value!");
         SWAP_FEE_0X = _newSwapFee0x;
 
