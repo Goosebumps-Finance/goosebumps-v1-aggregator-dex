@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./DEX/interfaces/IGooseBumpsSwapRouter02.sol";
-import "./DEX/interfaces/IGooseBumpsSwapFactory.sol";
+import "./interfaces/IGooseBumpsSwapRouter02.sol";
+import "./interfaces/IGooseBumpsSwapFactory.sol";
 
 contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     
