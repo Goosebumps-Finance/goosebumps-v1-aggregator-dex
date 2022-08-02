@@ -8,8 +8,10 @@ import './GooseBumpsSwapPair.sol';
 contract GooseBumpsSwapFactory is IGooseBumpsSwapFactory {
 
     address public override feeTo;
+    /**
+     * @dev Must be Multi-Signature Wallet.
+     */
     address public override feeToSetter;
-    address public override migrator;
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
@@ -17,6 +19,7 @@ contract GooseBumpsSwapFactory is IGooseBumpsSwapFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     constructor(address _feeToSetter) public {
+        require(_feeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
         feeToSetter = _feeToSetter;
     }
 
@@ -47,16 +50,13 @@ contract GooseBumpsSwapFactory is IGooseBumpsSwapFactory {
 
     function setFeeTo(address _feeTo) external override {
         require(msg.sender == feeToSetter, 'GooseBumpsSwap: FORBIDDEN');
+        require(_feeTo != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
         feeTo = _feeTo;
-    }
-
-    function setMigrator(address _migrator) external override {
-        require(msg.sender == feeToSetter, 'GooseBumpsSwap: FORBIDDEN');
-        migrator = _migrator;
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
         require(msg.sender == feeToSetter, 'GooseBumpsSwap: FORBIDDEN');
+        require(_feeToSetter != address(0), "GooseBumpsSwap: ZERO_ADDRESS");
         feeToSetter = _feeToSetter;
     }
 }
