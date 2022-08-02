@@ -16,6 +16,14 @@ contract GooseBumpsSwapPair is GooseBumpsSwapERC20 {
     uint public constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
+    /**
+     * @dev `factory` must be GooseBumpsSwapFactory contract address.
+     *
+     * Note GooseBumpsSwapPair contract can be deploy by any EOA, 
+     * but in this case, `factory` is not GooseBumpsSwapFactory contract address.
+     * GooseBumpsSwapPair contract that is deployed by any EOA never use in Goosebumps eco-system 
+     * because `factory` is an EOA, not GooseBumpsSwapFactory contract address.
+     */
     address public factory;
     address public token0;
     address public token1;
@@ -63,7 +71,13 @@ contract GooseBumpsSwapPair is GooseBumpsSwapERC20 {
         factory = msg.sender;
     }
 
-    // called once by the factory at time of deployment
+    /**
+     * @dev `initialize` is called once by the factory at time of deployment.
+     * 
+     * Note When `initialize` is called, input params are checked by the factory, 
+     * and the Goosebumps eco-system use the pair contracts that are deployed by the factory, not EOA. 
+     * Because of this, `zero-address check` is skipped.
+     */
     function initialize(address _token0, address _token1) external {
         require(msg.sender == factory, 'GooseBumpsSwap: FORBIDDEN'); // sufficient check
         token0 = _token0;
