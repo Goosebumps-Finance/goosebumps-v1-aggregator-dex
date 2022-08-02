@@ -1,12 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./utils/Ownable.sol";
+import "./utils/Pausable.sol";
+import "./utils/ReentrancyGuard.sol";
+import "./interfaces/IERC20.sol";
 import "./interfaces/IGooseBumpsSwapRouter02.sol";
 import "./interfaces/IGooseBumpsSwapFactory.sol";
 
