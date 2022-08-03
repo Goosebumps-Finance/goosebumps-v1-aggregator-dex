@@ -17,13 +17,13 @@ async function main() {
 
     // BSC Testnet
     // Factory
-    const _feeToSetter = "0x36285fDa2bE8a96fEb1d763CA77531D696Ae3B0b";
+    const _multiSigFeeToSetter = "0x36285fDa2bE8a96fEb1d763CA77531D696Ae3B0b";
 
     const GooseBumpsSwapFactory = await ethers.getContractFactory("GooseBumpsSwapFactory");
-    const gooseBumpsSwapFactory = await GooseBumpsSwapFactory.deploy(_feeToSetter);
+    const gooseBumpsSwapFactory = await GooseBumpsSwapFactory.deploy(_multiSigFeeToSetter);
     await gooseBumpsSwapFactory.deployed();
 
-    console.log("_feeToSetter: ", _feeToSetter)
+    console.log("_multiSigFeeToSetter: ", _multiSigFeeToSetter)
     console.log("GooseBumpsSwapFactory deployed to:", gooseBumpsSwapFactory.address);
     // pairCodeHash
     const pairCodeHash = await gooseBumpsSwapFactory.pairCodeHash()
