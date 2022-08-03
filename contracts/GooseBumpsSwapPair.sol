@@ -22,7 +22,7 @@ contract GooseBumpsSwapPair is GooseBumpsSwapERC20 {
      * Note GooseBumpsSwapPair contract can be deployed by any EOA, 
      * but in this case, `factory` is not the GooseBumpsSwapFactory address.
      * Because of this, GooseBumpsSwapPair contract that is deployed by any EOA never used in GooseBumpsSwap ecosystem.
-     * So, `factory` of all GooseBumpsSwapPair  is GooseBumpsSwapFactory, not EOA.
+     * So, `factory` of all GooseBumpsSwapPair is GooseBumpsSwapFactory, not EOA.
      * As a result, we are already using smart-contract-based accounts for GooseBumpsSwapPair security in our ecosystem.
      */
     address public factory;
