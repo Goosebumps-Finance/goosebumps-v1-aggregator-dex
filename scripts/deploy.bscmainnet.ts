@@ -15,7 +15,7 @@ async function main() {
 
     // We get the contract to deploy
 
-    // BSC Testnet
+    // BSC Mainnet
     // Factory
     const _multiSigFeeToSetter = "0xd078bd7bb85EC4F57340cE8C84ae647474AC12bf";
 
