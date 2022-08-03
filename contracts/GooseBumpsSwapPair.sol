@@ -17,12 +17,13 @@ contract GooseBumpsSwapPair is GooseBumpsSwapERC20 {
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     /**
-     * @dev `factory` must be GooseBumpsSwapFactory contract address.
+     * @dev `factory` must be the GooseBumpsSwapFactory address.
      *
-     * Note GooseBumpsSwapPair contract can be deploy by any EOA, 
-     * but in this case, `factory` is not GooseBumpsSwapFactory contract address.
-     * GooseBumpsSwapPair contract that is deployed by any EOA never use in Goosebumps eco-system 
-     * because `factory` is an EOA, not GooseBumpsSwapFactory contract address.
+     * Note GooseBumpsSwapPair contract can be deployed by any EOA, 
+     * but in this case, `factory` is not the GooseBumpsSwapFactory address.
+     * Because of this, GooseBumpsSwapPair contract that is deployed by any EOA never used in GooseBumpsSwap ecosystem.
+     * So, `factory` of all GooseBumpsSwapPair  is GooseBumpsSwapFactory, not EOA.
+     * As a result, we are already using smart-contract-based accounts for GooseBumpsSwapPair security in our ecosystem.
      */
     address public factory;
     address public token0;
@@ -75,7 +76,7 @@ contract GooseBumpsSwapPair is GooseBumpsSwapERC20 {
      * @dev `initialize` is called once by the factory at time of deployment.
      * 
      * Note When `initialize` is called, input params are checked by the factory, 
-     * and the Goosebumps eco-system use the pair contracts that are deployed by the factory, not EOA. 
+     * and the GooseBumpsSwap ecosystem uses the pair contracts that are deployed by the factory, not EOA. 
      * Because of this, `zero-address check` is skipped.
      */
     function initialize(address _token0, address _token1) external {
