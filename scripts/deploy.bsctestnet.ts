@@ -41,7 +41,6 @@ async function main() {
     console.log("WETH: ", WETH)
     console.log("GooseBumpsSwapRouter02 deployed to:", gooseBumpsSwapRouter02.address);
 
-
     // DEXManagement
     const _router = gooseBumpsSwapRouter02.address;
     const _treasury = "0x821965C1fD8B60D4B33E23C5832E2A7662faAADC";
