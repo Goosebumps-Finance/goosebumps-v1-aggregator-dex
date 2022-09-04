@@ -14,8 +14,8 @@ async function main() {
   // await hre.run('compile');
 
   // BSC Testnet
-  // const factory = "0x75C821CCD003CC9E9Ea06008fAf9Ab8189B1EC56"; // BSC Testnet Factory Address
-  // const WETH = "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"; // BSC Testnet WBNB Address
+  const factory = "0x56a81157Ec5E7Ef8302D0D7661a20b241284a00b"; // BSC Testnet Factory Address
+  const WETH = "0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"; // BSC Testnet WBNB Address
   
   // Ropsten Testnet
   // const factory = "0x354924E426FA21EbEc142BE760753D4407b8a59E"; // Ropsten Testnet Factory Address
@@ -26,8 +26,8 @@ async function main() {
   // const WETH = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // Polygon Mainnet WMTIC Address
   
   // BSC Mainnet
-  const factory = "0x045e2e2A533dB4559533A71631962836c7802834"; // BSC Mainnet Factory Address
-  const WETH = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"; // BSC Mainnet WBNB Address
+  // const factory = "0x045e2e2A533dB4559533A71631962836c7802834"; // BSC Mainnet Factory Address
+  // const WETH = "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"; // BSC Mainnet WBNB Address
   
   // We get the contract to deploy
   const GooseBumpsSwapRouter02 = await ethers.getContractFactory("GooseBumpsSwapRouter02");

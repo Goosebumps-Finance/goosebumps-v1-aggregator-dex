@@ -23,7 +23,7 @@ library GooseBumpsSwapLibrary {
                 hex'ff',
                 factory,
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'659ed6adb199b89b916fbc7775cf47b5104dbe8d243cc344455c329b5635a492' // init code hash
+                hex'25fc9abd249367c2b1a83eb77cb521484b8ecf6e0b2205a97a888eef6c2fd0a1' // init code hash
             ))));
     }
 
