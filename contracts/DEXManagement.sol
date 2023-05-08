@@ -179,7 +179,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         address to,
         uint deadline
     ) external whenNotPaused nonReentrant {
-        require(deadline >= block.timestamp, 'DEXManagement: EXPIRED');
+        require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(_amountIn > 0 , "Invalid amount");
         require(address(swapTarget) != address(0), "Zero address");
 
@@ -191,7 +191,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         uint256 boughtAmount = IERC20(tokenB).balanceOf(address(this));
 
         (bool success,) = swapTarget.call(swapCallData);
-        require(success, 'SWAP_CALL_FAILED');
+        require(success, "SWAP_CALL_FAILED");
 
         boughtAmount = IERC20(tokenB).balanceOf(address(this)) - boughtAmount;
 
@@ -253,7 +253,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         address to,
         uint deadline
     ) external payable whenNotPaused nonReentrant {
-        require(deadline >= block.timestamp, 'DEXManagement: EXPIRED');
+        require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(msg.value > 0 , "Invalid amount");
         require(address(swapTarget) != address(0), "Zero address");
 
@@ -262,7 +262,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         uint256 boughtAmount = IERC20(token).balanceOf(address(this));
 
         (bool success,) = swapTarget.call{value: _swapAmountIn}(swapCallData);
-        require(success, 'SWAP_CALL_FAILED');
+        require(success, "SWAP_CALL_FAILED");
 
         boughtAmount = IERC20(token).balanceOf(address(this)) - boughtAmount;
 
@@ -334,10 +334,10 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         address to,
         uint deadline
     ) external whenNotPaused nonReentrant {
-        require(deadline >= block.timestamp, 'DEXManagement: EXPIRED');
+        require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(_amountIn > 0 , "Invalid amount");
         require(address(swapTarget) != address(0), "Zero address");
-        require(to != address(0), "'to' is Zero address");
+        require(to != address(0), "to is Zero address");
 
         require(IERC20(token).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
         uint256 _swapAmountIn = _amountIn * (10000 - SWAP_FEE_0X) / 10000;
@@ -347,7 +347,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         uint256 boughtAmount = address(this).balance;
 
         (bool success,) = swapTarget.call(swapCallData);
-        require(success, 'SWAP_CALL_FAILED');
+        require(success, "SWAP_CALL_FAILED");
 
         boughtAmount = address(this).balance - boughtAmount;
 
