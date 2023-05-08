@@ -25,23 +25,26 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
 
     IGooseBumpsSwapRouter02 public dexRouter_;
 
+    mapping(address => bool) public isSwapTargetList;
+
     //-------------------------------------------------------------------------
     // EVENTS
     //-------------------------------------------------------------------------
 
-    event LogReceived(address indexed, uint);
-    event LogFallback(address indexed, uint);
-    event LogSetTreasury(address indexed, address indexed);
-    event LogSetSwapFee(address indexed, uint256);
-    event LogSetSwapFee0x(address indexed, uint256);
-    event LogSetDexRouter(address indexed, address indexed);
-    event LogWithdraw(address indexed, uint256, uint256);
-    event LogSwapExactTokensForTokens(address indexed, address indexed, uint256, uint256);
-    event LogSwapExactETHForTokens(address indexed, uint256, uint256);
-    event LogSwapExactTokenForETH(address indexed, uint256, uint256);
-    event LogSwapExactTokensForTokensOn0x(address indexed, address indexed, uint256, uint256);
-    event LogSwapExactETHForTokensOn0x(address indexed, uint256, uint256);
-    event LogSwapExactTokenForETHOn0x(address indexed, uint256, uint256);
+    event LogReceived(address indexed sender, uint value);
+    event LogFallback(address indexed sender, uint value);
+    event LogUpdateSwapTargetList(address indexed sender, address indexed swapTarget, bool indexed bValue);
+    event LogSetTreasury(address indexed sender, address indexed treasury);
+    event LogSetSwapFee(address indexed sender, uint256 fee);
+    event LogSetSwapFee0x(address indexed sender, uint256 fee0x);
+    event LogSetDexRouter(address indexed sender, address indexed router);
+    event LogWithdraw(address indexed sender, address indexed token, uint256 tokenAmount, uint256 ethAmount);
+    event LogSwapExactTokensForTokens(address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut);
+    event LogSwapExactETHForTokens(address indexed token, uint256 amountIn, uint256 amountOut);
+    event LogSwapExactTokenForETH(address indexed token, uint256 amountIn, uint256 amountOut);
+    event LogSwapExactTokensForTokensOn0x(address indexed tokenIn, address indexed tokenOut, uint256 amountIn, uint256 amountOut);
+    event LogSwapExactETHForTokensOn0x(address indexed token, uint256 amountIn, uint256 amountOut);
+    event LogSwapExactTokenForETHOn0x(address indexed token, uint256 amountIn, uint256 amountOut);
 
     //-------------------------------------------------------------------------
     // CONSTRUCTOR
@@ -61,26 +64,6 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         TREASURY = _treasury;
         SWAP_FEE = _swapFee;
         SWAP_FEE_0X = _swapFee0x;
-    }
-
-    /**
-     * @param   _tokenA: tokenA contract address
-     * @param   _tokenB: tokenB contract address
-     * @return  bool: if pair is in DEX, return true, else, return false.
-     */
-    function isPairExists(address _tokenA, address _tokenB) public view returns(bool){        
-        return IGooseBumpsSwapFactory(dexRouter_.factory()).getPair(_tokenA, _tokenB) != address(0);
-    }
-
-    /**
-     * @param   _tokenA: tokenA contract address
-     * @param   _tokenB: tokenB contract address
-     * @return  bool: if path is in DEX, return true, else, return false.
-     */
-    function isPathExists(address _tokenA, address _tokenB) public view returns(bool){        
-        return IGooseBumpsSwapFactory(dexRouter_.factory()).getPair(_tokenA, _tokenB) != address(0) || 
-            (IGooseBumpsSwapFactory(dexRouter_.factory()).getPair(_tokenA, dexRouter_.WETH()) != address(0) && 
-            IGooseBumpsSwapFactory(dexRouter_.factory()).getPair(dexRouter_.WETH(), _tokenB) != address(0));
     }
 
     /**
@@ -104,8 +87,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @param   tokenA: InputToken Address to swap on GooseBumps
-     * @param   tokenB: OutputToken Address to swap on GooseBumps
+     * @param   path: Swap path on GooseBumps
      * @param   _amountIn: Amount of InputToken to swap on GooseBumps
      * @param   _amountOutMin: The minimum amount of output tokens that must be received for the transaction not to revert.
      * @param   to: Recipient of the output tokens.
@@ -113,37 +95,21 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
      * @notice  Swap ERC20 token to ERC20 token on GooseBumps
      */
     function swapExactTokensForTokens(
-        address tokenA, 
-        address tokenB, 
+        address[] calldata path,
         uint256 _amountIn, 
         uint256 _amountOutMin, 
         address to, 
         uint deadline
     ) external whenNotPaused nonReentrant {
-        require(isPathExists(tokenA, tokenB), "Invalid path");
         require(_amountIn > 0 , "Invalid amount");
 
-        require(IERC20(tokenA).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
+        require(IERC20(path[0]).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
 
         uint256 _swapAmountIn = _amountIn * (10000 - SWAP_FEE) / 10000;
         
-        require(IERC20(tokenA).approve(address(dexRouter_), _swapAmountIn));
+        require(IERC20(path[0]).approve(address(dexRouter_), _swapAmountIn), "Failed Approve");
 
-        address[] memory path;
-        if (isPairExists(tokenA, tokenB)) 
-        {
-            path = new address[](2);
-            path[0] = tokenA;
-            path[1] = tokenB;
-        }         
-        else {
-            path = new address[](3);
-            path[0] = tokenA;
-            path[1] = dexRouter_.WETH();
-            path[2] = tokenB;
-        }
-        
-        uint256 boughtAmount = IERC20(tokenB).balanceOf(to);
+        uint256 boughtAmount = IERC20(path[path.length - 1]).balanceOf(to);
         dexRouter_.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             _swapAmountIn,
             _amountOutMin,  
@@ -151,11 +117,11 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
             to,
             deadline
         );
-        boughtAmount = IERC20(tokenB).balanceOf(to) - boughtAmount;
+        boughtAmount = IERC20(path[path.length - 1]).balanceOf(to) - boughtAmount;
 
-        require(IERC20(tokenA).transfer(TREASURY, _amountIn - _swapAmountIn), "Faild Transfer");
+        require(IERC20(path[0]).transfer(TREASURY, _amountIn - _swapAmountIn), "Faild Transfer");
 
-        emit LogSwapExactTokensForTokens(tokenA, tokenB, _amountIn, boughtAmount);
+        emit LogSwapExactTokensForTokens(path[0], path[path.length - 1], _amountIn, boughtAmount);
     }
 
     /**
@@ -181,15 +147,15 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     ) external whenNotPaused nonReentrant {
         require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(_amountIn > 0 , "Invalid amount");
-        require(address(swapTarget) != address(0), "Zero address");
 
         require(IERC20(tokenA).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
         uint256 _swapAmountIn = _amountIn * (10000 - SWAP_FEE_0X) / 10000;
         
-        require(IERC20(tokenA).approve(spender, _swapAmountIn));
+        require(IERC20(tokenA).approve(spender, _swapAmountIn), "Failed Approve");
         
         uint256 boughtAmount = IERC20(tokenB).balanceOf(address(this));
 
+        require(isSwapTargetList[address(swapTarget)], "Faild SwapTarget");
         (bool success,) = swapTarget.call(swapCallData);
         require(success, "SWAP_CALL_FAILED");
 
@@ -203,39 +169,34 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @param   token: OutputToken Address to swap on GooseBumps
+     * @param   path: Swap path on GooseBumps
      * @param   _amountOutMin: The minimum amount of output tokens that must be received for the transaction not to revert.
      * @param   to: Recipient of the output tokens.
      * @param   deadline: Deadline, Timestamp after which the transaction will revert.
      * @notice  Swap ETH to ERC20 token on GooseBumps
      */
     function swapExactETHForTokens(
-        address token, 
+        address[] calldata path,
         uint256 _amountOutMin, 
         address to, 
         uint deadline
     ) external payable whenNotPaused nonReentrant {
-        require(isPathExists(token, dexRouter_.WETH()), "Invalid path");
         require(msg.value > 0 , "Invalid amount");
-
-        address[] memory path = new address[](2);
-        path[0] = dexRouter_.WETH();
-        path[1] = token;
 
         uint256 _swapAmountIn = msg.value * (10000 - SWAP_FEE) / 10000;
 
-        uint256 boughtAmount = IERC20(token).balanceOf(to);
+        uint256 boughtAmount = IERC20(path[path.length - 1]).balanceOf(to);
         dexRouter_.swapExactETHForTokensSupportingFeeOnTransferTokens{value: _swapAmountIn}(                
             _amountOutMin,
             path,
             to,
             deadline
         );
-        boughtAmount = IERC20(token).balanceOf(to) - boughtAmount;
+        boughtAmount = IERC20(path[path.length - 1]).balanceOf(to) - boughtAmount;
 
         payable(TREASURY).transfer(msg.value - _swapAmountIn);
 
-        emit LogSwapExactETHForTokens(token, msg.value, boughtAmount);
+        emit LogSwapExactETHForTokens(path[path.length - 1], msg.value, boughtAmount);
     }
 
     /**
@@ -255,12 +216,12 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     ) external payable whenNotPaused nonReentrant {
         require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(msg.value > 0 , "Invalid amount");
-        require(address(swapTarget) != address(0), "Zero address");
 
         uint256 _swapAmountIn = msg.value * (10000 - SWAP_FEE_0X) / 10000;
         
         uint256 boughtAmount = IERC20(token).balanceOf(address(this));
 
+        require(isSwapTargetList[address(swapTarget)], "Faild SwapTarget");
         (bool success,) = swapTarget.call{value: _swapAmountIn}(swapCallData);
         require(success, "SWAP_CALL_FAILED");
 
@@ -274,7 +235,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     /**
-     * @param   token: InputToken Address to swap on GooseBumps
+     * @param   path: Swap path on GooseBumps
      * @param   _amountIn: Amount of InputToken to swap on GooseBumps
      * @param   _amountOutMin: The minimum amount of output tokens that must be received for the transaction not to revert.
      * @param   to: Recipient of the output tokens.
@@ -282,23 +243,18 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
      * @notice  Swap ERC20 token to ETH on GooseBumps
      */
     function swapExactTokenForETH(
-        address token, 
+        address[] calldata path,
         uint256 _amountIn, 
         uint256 _amountOutMin, 
         address to, 
         uint deadline
     ) external whenNotPaused nonReentrant {
-        require(isPathExists(token, dexRouter_.WETH()), "Invalid path");
         require(_amountIn > 0 , "Invalid amount");
-
-        address[] memory path = new address[](2);
-        path[0] = token;
-        path[1] = dexRouter_.WETH();
         
-        require(IERC20(token).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
+        require(IERC20(path[0]).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
         uint256 _swapAmountIn = _amountIn * (10000 -  SWAP_FEE) / 10000;
         
-        require(IERC20(token).approve(address(dexRouter_), _swapAmountIn));
+        require(IERC20(path[0]).approve(address(dexRouter_), _swapAmountIn), "Failed Approve");
 
         uint256 boughtAmount = address(to).balance;
         dexRouter_.swapExactTokensForETHSupportingFeeOnTransferTokens(   
@@ -310,9 +266,9 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         );
         boughtAmount = address(to).balance - boughtAmount;
 
-        require(IERC20(token).transfer(TREASURY, _amountIn - _swapAmountIn), "Faild Transfer");
+        require(IERC20(path[0]).transfer(TREASURY, _amountIn - _swapAmountIn), "Faild Transfer");
 
-        emit LogSwapExactTokenForETH(token, _amountIn, boughtAmount);
+        emit LogSwapExactTokenForETH(path[0], _amountIn, boughtAmount);
     }
 
     /**
@@ -336,16 +292,16 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     ) external whenNotPaused nonReentrant {
         require(deadline >= block.timestamp, "DEXManagement: EXPIRED");
         require(_amountIn > 0 , "Invalid amount");
-        require(address(swapTarget) != address(0), "Zero address");
         require(to != address(0), "to is Zero address");
 
         require(IERC20(token).transferFrom(_msgSender(), address(this), _amountIn), "Faild TransferFrom");
         uint256 _swapAmountIn = _amountIn * (10000 - SWAP_FEE_0X) / 10000;
         
-        require(IERC20(token).approve(spender, _swapAmountIn));
+        require(IERC20(token).approve(spender, _swapAmountIn), "Failed Approve");
         
         uint256 boughtAmount = address(this).balance;
 
+        require(isSwapTargetList[address(swapTarget)], "Faild SwapTarget");
         (bool success,) = swapTarget.call(swapCallData);
         require(success, "SWAP_CALL_FAILED");
 
@@ -370,7 +326,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
             require(IERC20(token).transfer(_msgSender(), balance), "Faild Transfer");
         }
         
-        emit LogWithdraw(_msgSender(), balance, address(this).balance);
+        emit LogWithdraw(_msgSender(), token, balance, address(this).balance);
     }
 
     receive() external payable {
@@ -394,7 +350,7 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
     }
 
     function setTreasury(address _newTreasury) external onlyMultiSig whenNotPaused {
-        require(TREASURY != _newTreasury, "Same address! Notice: Must be Multi-sig Wallet!");
+        require(TREASURY != _newTreasury, "Same address! Must be Multi-sig!");
         TREASURY = _newTreasury;
 
         emit LogSetTreasury(_msgSender(), TREASURY);
@@ -421,5 +377,12 @@ contract DEXManagement is Ownable, Pausable, ReentrancyGuard {
         dexRouter_ = IGooseBumpsSwapRouter02(_newRouter);
         
         emit LogSetDexRouter(_msgSender(), address(dexRouter_));
+    }
+
+    function updateSwapTargetList(address _swapTarget, bool bValue) external onlyMultiSig whenNotPaused {
+        require(isSwapTargetList[_swapTarget] != bValue, "Same value!");
+        isSwapTargetList[_swapTarget] = bValue;
+        
+        emit LogUpdateSwapTargetList(_msgSender(), _swapTarget, bValue);
     }
 }
